@@ -55,15 +55,40 @@ const fetchTextFromUrl = tool(
     }
 )
 
+const fetchJsonFromUrl = tool(
+    async ({ url }) => {
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) {
+                return `Fetch failed: HTTP ${resp.status} ${resp.statusText}`;
+            }
+            const data = await resp.json();
+            return JSON.stringify(data, null, 2);
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            return `Fetch failed: ${msg}`;
+        }
+    },
+    {
+        name: "fetch_json_from_url",
+        description: "Fetch JSON data from a REST API endpoint and return it as formatted JSON",
+        schema: z.object({
+            url: z.url()
+        })
+    }
+)
+
 const agent = createAgent({
-  model: "google-genai:gemini-2.5-flash-lite",
-  tools: [getWeather , fetchTextFromUrl],
+  model: "google-genai:gemini-2.0-flash",
+  tools: [getWeather, fetchTextFromUrl, fetchJsonFromUrl],
 });
 
 
   const result = await agent.invoke({
-    messages: [{ role: "user", content: "Fetch the content from https://something.com" }],
+    messages: [{ role: "user", content: "Fetch the JSON data from https://jsonplaceholder.typicode.com/posts/1 and summarize it"}]
   });
-//   console.log(result.messages)
-  const lastMessage = result.messages[result.messages.length - 1];
-  console.log(lastMessage.content);
+  for (const msg of result.messages) {
+    const role = msg.constructor.name;
+    const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+    if (content && content !== '[]') console.log(`\n[${role}]:\n${content.slice(0, 1000)}`);
+  }
