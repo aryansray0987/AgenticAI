@@ -22,10 +22,10 @@ const getWeather = tool(
 
 );
 
-
-
+//fetchTextFromUrl tool calling...........................................
 const fetchTextFromUrl = tool(
     async ({ url }) => {
+        console.log(url)
         const controller = new AbortController(); //  For aborting the fetch request 
         const timeoutId = setTimeout(() => controller.abort(), 120000);
         try {
@@ -79,16 +79,15 @@ const fetchJsonFromUrl = tool(
 )
 
 const agent = createAgent({
-  model: "google-genai:gemini-2.0-flash",
+  model: "openai:nvidia/nemotron-nano-9b-v2:free",
   tools: [getWeather, fetchTextFromUrl, fetchJsonFromUrl],
 });
 
 
-  const result = await agent.invoke({
-    messages: [{ role: "user", content: "Fetch the JSON data from https://jsonplaceholder.typicode.com/posts/1 and summarize it"}]
-  });
-  for (const msg of result.messages) {
-    const role = msg.constructor.name;
-    const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
-    if (content && content !== '[]') console.log(`\n[${role}]:\n${content.slice(0, 1000)}`);
-  }
+const response =   await agent.invoke({
+    messages: [{ role: "user", content: "can you return the text from https://www.toptal.com/developers/gitignore/api/node"}],
+})
+
+console.log(response.messages[response.messages.length-1].content)
+
+
