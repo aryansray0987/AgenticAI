@@ -78,14 +78,17 @@ const fetchJsonFromUrl = tool(
     }
 )
 
+
+
 const agent = createAgent({
-  model: "openai:nvidia/nemotron-nano-9b-v2:free",
+  model: "openai:google/gemini-2.5-flash-lite",
   tools: [getWeather, fetchTextFromUrl, fetchJsonFromUrl],
+  systemPrompt: 'You are a helpful assistant. You can answer general questions using your own knowledge. Only use tools when the user explicitly asks for weather data, fetching a URL, or fetching JSON from an API. For all other questions, respond directly without using any tools. Do NOT call any tool unless the user\'s request specifically requires it.'
 });
 
 
 const response =   await agent.invoke({
-    messages: [{ role: "user", content: "can you return the text from https://www.toptal.com/developers/gitignore/api/node"}],
+    messages: [{ role: "user", content: "what is the weather in Gorakhpur"}],
 })
 
 console.log(response.messages[response.messages.length-1].content)
